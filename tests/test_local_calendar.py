@@ -44,14 +44,14 @@ class CalendarTest(unittest.TestCase):
         self.assertEqual(actual['minutes'], 25)
         self.assertTrue(actual['provisional'])
 
-    def test_archived_actual_remains_visible_and_completed_plan_is_hidden(self):
+    def test_archived_actual_and_completed_plan_remain_visible(self):
         archived = task('archived', status='done', action_date='2026-11-04', work_started_at='2026-11-04T10:00:00+09:00', work_ended_at='2026-11-04T10:30:00+09:00')
         archived = Entity(archived.entity_id, archived.entity_type, 'archive/tasks/archived.md', archived.frontmatter, archived.body, archived.content_hash)
         done = task('done',status='done',scheduled_start='2026-11-04T09:00:00+09:00',scheduled_end='2026-11-04T10:00:00+09:00')
         events = self.project([archived,done],view='day')['days'][0]['events']
-        self.assertEqual(len(events),1)
-        self.assertEqual(events[0]['kind'],'actual')
-        self.assertTrue(events[0]['archived'])
+        self.assertEqual(len(events),2)
+        self.assertTrue(any(e['kind']=='actual' and e['archived'] for e in events))
+        self.assertTrue(any(e['kind']=='planned' and e['id']=='done' for e in events))
 
     def test_range_clips_cross_boundary_and_jst_deadline(self):
         entity = task('cross',scheduled_start='2026-11-03T23:00:00+09:00',scheduled_end='2026-11-05T01:00:00+09:00',due='2026-11-03T15:00:00Z')
@@ -61,6 +61,11 @@ class CalendarTest(unittest.TestCase):
         self.assertEqual(planned['start'],'2026-11-04T00:00:00+09:00')
         self.assertEqual(planned['end'],'2026-11-05T00:00:00+09:00')
         self.assertTrue(any(e['kind']=='deadline' for e in events))
+
+    def test_completed_plan_and_actual_remain_separate_for_comparison(self):
+        events=self.project([task('done',status='done',scheduled_start='2026-11-04T09:00:00+09:00',scheduled_end='2026-11-04T10:00:00+09:00',work_started_at='2026-11-04T09:10:00+09:00',work_ended_at='2026-11-04T09:32:00+09:00')],view='day')['days'][0]['events']
+        self.assertEqual([e['kind'] for e in events],['planned','actual'])
+        self.assertEqual([e['minutes'] for e in events],[60,22])
 
     def test_invalid_query_and_naive_timestamps(self):
         for view, date in [('bad','2026-11-04'), ('day','2026-02-30'), ('day','26-11-04'), ('week','0001-01-01')]:

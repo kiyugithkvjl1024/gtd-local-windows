@@ -50,3 +50,49 @@
 .integration-settings { margin-top:1rem; padding:1rem; border:1px solid var(--border,#627484); border-radius:8px; }
 .integration-setting-row { display:flex; align-items:center; gap:.75rem; min-height:44px; overflow-wrap:anywhere; }
 .integration-setting-row input { width:24px; height:24px; flex:0 0 24px; }
+
+/* One scroll surface and one proportional 24-hour axis for every provider. */
+.calendar-viewport { overflow:auto; max-height:72vh; margin-top:1rem; border:1px solid var(--border,#ccc); overscroll-behavior:contain; }
+.calendar-grid.calendar-axis { --calendar-header-height:100px; display:grid; grid-template-columns:46px repeat(var(--calendar-days),minmax(130px,1fr)); gap:0; margin:0; position:relative; overflow:visible; }
+.calendar-axis .calendar-day { border:0; border-left:1px solid var(--border,#ccc); border-radius:0; padding:0; min-width:0; }
+.calendar-day-header { padding:.4rem; }
+.calendar-axis .calendar-day-header { height:var(--calendar-header-height); box-sizing:border-box; position:sticky; top:0; z-index:7; background:var(--surface,#fff); overflow:auto; }
+.calendar-axis .calendar-date { font-size:.75rem; }
+.calendar-axis .calendar-day-header > button { font-size:.7rem; padding:.25rem; }
+.calendar-all-day { font-size:.75rem; }
+.calendar-all-day-heading { font-size:.75rem; margin:.4rem 0; }
+.calendar-all-day-hint { font-size:.7rem; margin:.35rem 0; }
+.calendar-axis .calendar-all-day { max-height:8rem; overflow:auto; }
+.calendar-ruler { position:relative; margin-top:var(--calendar-header-height); height:1440px; font-size:.65rem; }
+.calendar-ruler span { position:absolute; left:2px; transform:translateY(-50%); }
+.calendar-time-column { position:relative; height:1440px; background:repeating-linear-gradient(to bottom,transparent 0,transparent 29px,#e6e9ec 29px,#e6e9ec 30px,transparent 30px,transparent 59px,#c6ced6 59px,#c6ced6 60px); }
+.calendar-axis .calendar-axis-event { box-sizing:border-box; position:absolute; margin:0; min-height:0; border-radius:3px; padding:0 3px; overflow:hidden; z-index:1; font-size:.7rem; }
+.calendar-axis-event > span,.calendar-axis-event > a { font-size:.7rem; line-height:14px; white-space:nowrap; text-overflow:ellipsis; overflow:hidden; }
+.calendar-axis-event > a { margin-right:18px; }
+.calendar-axis-event:focus-within,.calendar-axis-event:hover { z-index:4; }
+.calendar-axis-event .calendar-edit { position:absolute; right:0; top:0; font-size:.65rem; padding:0 2px; min-height:20px; max-width:55%; }
+.calendar-handle { position:absolute; z-index:3; font-size:.6rem; padding:0; min-height:10px; line-height:10px; touch-action:none; cursor:ns-resize; }
+.calendar-handle-move { bottom:0; left:0; width:24px; min-height:20px; cursor:grab; }
+.calendar-handle-start,.calendar-handle-end { right:0; width:24px; height:10px; }
+.calendar-handle-start { top:0; }.calendar-handle-end {bottom:0;}
+.calendar-dragging { outline:2px solid #2877b2; }
+.calendar-status { height:3.6em; overflow:auto; }
+.calendar-axis .outlook-event > strong,.calendar-axis .outlook-event > span { margin-left:24px; margin-right:24px; font-size:.65rem; line-height:14px; }
+.calendar-axis .outlook-event button { min-height:18px; padding:0 2px; }
+.calendar-axis .outlook-event .outlook-resize { min-height:10px; height:10px; }
+.calendar-axis .outlook-event > .outlook-time-label { white-space:nowrap; }
+@media(max-width:850px){
+ .calendar-grid.calendar-axis { grid-template-columns:42px repeat(var(--calendar-days),minmax(230px,1fr)); }
+ .calendar-grid.calendar-axis[data-view='day'] { grid-template-columns:42px minmax(0,1fr); }
+ .calendar-viewport { max-height:70vh; }
+ .calendar-axis .outlook-event { min-height:0; }
+ .calendar-axis .outlook-event > strong,.calendar-axis .outlook-event > span { margin-left:24px; margin-right:24px; }
+ .calendar-axis .outlook-move { min-width:24px; }
+}
+
+.calendar-accessible-list { margin-top:1rem; }
+.calendar-accessible-list summary { padding:.5rem; cursor:pointer; }
+.calendar-listed-event { display:flex; flex-wrap:wrap; align-items:center; gap:.5rem; padding:.5rem; border-bottom:1px solid var(--border,#ccc); }
+.calendar-listed-event button,.calendar-listed-event a { min-height:44px; display:inline-flex; align-items:center; }
+.calendar-axis-event {touch-action:pan-y;}
+.calendar-accessible-list .outlook-event {position:relative;}

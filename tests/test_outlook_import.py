@@ -64,7 +64,17 @@ class OutlookTest(unittest.TestCase):
             def read_snapshot(self):
                 class Snapshot:entities=[];recovery_required=False
                 return Snapshot()
-        projection=calendar_projection(Store(),'day','2026-10-09',external=self.service.status()['events']);row=projection['days'][0]['events'][0];self.assertTrue(row['external']);self.assertEqual(row['status'],'done');self.assertEqual(row['kind'],'external')
+        projection=calendar_projection(Store(),'day','2026-10-09',external=self.service.status()['events']);rows=projection['days'][0]['events'];row=next(row for row in rows if row['kind']=='external');self.assertTrue(row['external']);self.assertEqual(row['status'],'done');self.assertEqual(row['kind'],'external')
+
+class CalendarComparisonTest(unittest.TestCase):
+    def test_external_plan_and_manual_actual_keep_both_intervals(self):
+        from types import SimpleNamespace
+        external={'key':'synthetic','title':'Synthetic','start':'2026-10-09T09:00:00+09:00','end':'2026-10-09T10:00:00+09:00','all_day':False,'local':{'done':True,'actual':{'start':'2026-10-09T09:15:00+09:00','end':'2026-10-09T09:37:00+09:00','origin':'manual'}},'presence':'seen','needs_review':False,'cancelled':False,'provider_id':'outlook'}
+        store=SimpleNamespace(read_snapshot=lambda:SimpleNamespace(entities=[],recovery_required=False))
+        rows=calendar_projection(store,'day','2026-10-09',external=[external])['days'][0]['events']
+        self.assertEqual([row['kind'] for row in rows],['external','actual'])
+        self.assertEqual([row['minutes'] for row in rows],[60,22])
+        self.assertTrue(all(row['source_start']==external['start'] for row in rows))
 
 def graph_event(**kw):
     return {'id':'immutable-one','iCalUId':'uid-one','type':'singleInstance','subject':'合成Graph予定','start':{'dateTime':'2026-10-09T01:00:00','timeZone':'UTC'},'end':{'dateTime':'2026-10-09T02:00:00','timeZone':'UTC'},**kw}
