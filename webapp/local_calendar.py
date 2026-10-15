@@ -55,13 +55,13 @@ def calendar_projection(store, view, date, *, now=None, external=()):
         fm = entity.frontmatter
         archived = entity.relative_path.startswith('archive/')
         base = {'id': entity.entity_id, 'title': fm.get('title', entity.entity_id), 'status': fm.get('status', ''), 'archived': archived}
-        if not archived and fm.get('status') != 'done':
+        if not archived:
             first, last = _timestamp(fm.get('scheduled_start')), _timestamp(fm.get('scheduled_end'))
             if first and last:
                 timed(base, 'planned', first, last)
-            elif fm.get('action_date'):
+            elif fm.get('action_date') and fm.get('status') != 'done':
                 all_day(base, 'action', fm['action_date'])
-            if fm.get('due'):
+            if fm.get('due') and fm.get('status') != 'done':
                 deadline = _timestamp(fm['due'])
                 all_day(base, 'deadline', deadline.date().isoformat() if deadline else fm['due'])
         first = _timestamp(fm.get('work_started_at'))
@@ -71,13 +71,15 @@ def calendar_projection(store, view, date, *, now=None, external=()):
     for event in external:
         base = {'id':event['key'], 'title':event['title'], 'status':'done' if event['local'].get('done') else 'scheduled', 'archived':False, 'external':True, 'provider_id':event.get('provider_id','external'), 'provider_label':event.get('provider_label','外部予定'), 'actual_reference_id':'external:'+event['key'] if event['local'].get('actual') else None, 'local':event['local'], 'presence':event['presence'], 'needs_review':event['needs_review'], 'cancelled':event['cancelled'], 'source_start':event['start'], 'source_end':event['end']}
         actual=event['local'].get('actual')
-        first, last = _timestamp(actual['start'] if actual else event['start']), _timestamp(actual['end'] if actual else event['end'])
+        first, last = _timestamp(event['start']), _timestamp(event['end'])
         if event['all_day']:
             day = max(first.date(), start)
             while day < min(last.date(), end):
                 all_day(base, 'external', day.isoformat()); day += dt.timedelta(days=1)
         else:
             timed(base, 'external', first, last)
+        if actual:
+            timed(base, 'actual', _timestamp(actual['start']), _timestamp(actual['end']))
     for day in days:
         day['events'].sort(key=lambda e: (not e['all_day'], e.get('start',''), e['kind'], e['id']))
     return {'view': view, 'date': date, 'timezone': 'Asia/Tokyo', 'from': start.isoformat(), 'to_exclusive': end.isoformat(), 'days': days, 'mutation_state': {'recovery_required': snapshot.recovery_required}}
